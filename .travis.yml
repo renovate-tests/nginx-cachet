@@ -1,0 +1,30 @@
+sudo: required
+
+services:
+  - docker
+
+env:
+  matrix :
+    - env:
+      VERSION: '1.11.9'
+      TAGS: '1.11,1,mainline,latest'
+    - env:
+      VERSION: '1.10.3'
+      TAGS: '1.10,stable'
+
+install:
+  - docker build -t "lgatica/nginx-cachet:$VERSION" "$VERSION"
+
+script:
+  - docker run -d --name postgres -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=postgres postgres:9.5
+  - docker run -d --name cachet --expose 9000 --link postgres:postgres -e DB_DRIVER=pgsql -e DB_HOST=postgres -e DB_DATABASE=postgres -e DB_USERNAME=postgres -e DB_PASSWORD=postgres -v /var/www cachethq/docker:2.3.10
+  - docker run -d --name nginx -p 8080:80 --link cachet:cachet --volumes-from cachet "lgatica/nginx-cachet:$VERSION"
+  - curl -I -X GET localhost:8080/setup
+
+after_success:
+  - docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD"
+  - for TAG in $(echo $TAGS | sed "s/,/ /g"); do docker tag "lgatica/nginx-cachet:$VERSION" "lgatica/nginx-cachet:$TAG"; done
+  - docker push lgatica/nginx-cachet
+
+notifications:
+  email: false
