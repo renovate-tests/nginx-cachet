@@ -6,11 +6,11 @@ services:
 env:
   matrix :
     - env:
-      VERSION: '1.11.9'
-      TAGS: '1.11,1,mainline,latest'
+      VERSION: '1.13.12'
+      TAGS: '1.13,mainline,latest'
     - env:
-      VERSION: '1.10.3'
-      TAGS: '1.10,stable'
+      VERSION: '1.12.2'
+      TAGS: '1.12,stable'
 
 install:
   - docker build -t "lgatica/nginx-cachet:$VERSION" "$VERSION"
@@ -21,10 +21,16 @@ script:
   - docker run -d --name nginx -p 8080:80 --link cachet:cachet --volumes-from cachet "lgatica/nginx-cachet:$VERSION"
   - curl -I -X GET localhost:8080/setup
 
-after_success:
+before_deploy:
   - docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD"
   - for TAG in $(echo $TAGS | sed "s/,/ /g"); do docker tag "lgatica/nginx-cachet:$VERSION" "lgatica/nginx-cachet:$TAG"; done
-  - docker push lgatica/nginx-cachet
+
+deploy:
+  provider: script
+  script: docker push lgatica/nginx-cachet
+  skip_cleanup: true
+  on:
+    branch: master
 
 notifications:
   email: false

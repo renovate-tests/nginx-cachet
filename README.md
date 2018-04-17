@@ -6,6 +6,10 @@
 
 > Docker image for proxy of cachet with alpine
 
+Supported tags and respective Dockerfile links
+
+- 1.13.12, 1.13, mainline, latest ([Dockerfile](https://github.com/lgaticaq/nginx-cachet/blob/master/1.13.12/Dockerfile))
+- 1.12.2, 1.12, stable ([Dockerfile](https://github.com/lgaticaq/nginx-cachet/blob/master/1.12.2/Dockerfile))
 
 Example docker-compose-yml:
 
